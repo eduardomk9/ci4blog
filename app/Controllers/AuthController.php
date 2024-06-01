@@ -6,12 +6,13 @@ use App\Controllers\BaseController;
 use App\Libraries\CIAuth;
 use App\Libraries\Hash;
 use App\Models\User;
+use App\Models\PasswordResetToken;
 use CodeIgniter\HTTP\ResponseInterface;
 use PHPUnit\TextUI\XmlConfiguration\Validator;
 
 class AuthController extends BaseController
 {
-    protected $helpers = ['url', 'form'];
+    protected $helpers = ['url', 'form', 'CIMail'];
 
     public function loginForm()
     {
@@ -66,31 +67,53 @@ class AuthController extends BaseController
         }
 
         if (!$isValid) {
-            return view('backend/pages/auth/login',[
-                'pageTitel'=>'Login',
-                'validation'=>$this->validator
+            return view('backend/pages/auth/login', [
+                'pageTitel' => 'Login',
+                'validation' => $this->validator
             ]);
-        } else{
+        } else {
             $user = new User();
             $userInfo = $user->where($fieldType, $this->request->getVar('login_id'))->first();
             $check_password = Hash::check($this->request->getVar('password'), $userInfo['password']);
 
-            if( !$check_password){
-                return redirect()->route('admin.login.form')->with('fail','Wrong Password')->withInput();
-            }else{
+            if (!$check_password) {
+                return redirect()->route('admin.login.form')->with('fail', 'Wrong Password')->withInput();
+            } else {
                 CIAuth::setCIAuth($userInfo);
                 return redirect()->route('admin.home');
             }
         }
     }
 
-    public function forgotForm(){
+    public function forgotForm()
+    {
         $data = array(
             'pageTitle' => 'Forgot password',
             'validation' => null
         );
         return view('backend\pages\auth\forgot', $data);
-  
+    }
+
+    public function sendPasswordResetLink()
+    {
+        $isValid = $this->validate([
+            'email' => [
+                'rules' => 'required|valid_email|is_not_unique[users.email]',
+                'errors' => [
+                    'required' => 'Email is required',
+                    'valid_email'=>'Please check email field. It does not appears to be valid.',
+                    'is_not_unique' => 'Email does not exists in our system.'
+                ]
+            ]
+        ]);
+
+        if( !$isValid ){
+            return view('backend/pages/auth/forgot',[
+                'pageTitle'=>'Forgot password',
+                'validation'=>$this->validator,
+            ]);
+        }else {
+            echo 'Form Validated';
+        }
     }
 }
-    
