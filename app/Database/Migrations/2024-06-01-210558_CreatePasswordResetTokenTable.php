@@ -4,7 +4,7 @@ namespace App\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
 
-class CreatePasswordResetTokensTable extends Migration
+class CreatePasswordResetTokenTable extends Migration
 {
     public function up()
     {
@@ -19,11 +19,11 @@ class CreatePasswordResetTokensTable extends Migration
             ],
             'created_at timestamp default current_timestamp',
         ]);
-        $this->forge->createTable('password_reset_tokens');
+        $this->forge->createTable('password_reset_token');
     }
 
     public function down()
     {
-        $this->forge->dropTable('password_reset_tokens');
+        $this->forge->dropTable('password_reset_token');
     }
 }

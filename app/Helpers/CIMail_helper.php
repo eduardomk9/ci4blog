@@ -27,7 +27,7 @@ if (!function_exists('sndEmail')) {
         $mail->Subject = $mailConfig['mail_subject'];
         $mail->Body = $mailConfig['mail_body'];
 
-        if ( $email->send() ) {
+        if ( $mail->send() ) {
             return true;
         }else {
             return false;
