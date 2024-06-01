@@ -18,6 +18,7 @@ $routes->group('admin', [], static function ($routes) {
    //     $routes->view('example-auth','example-auth');
    $routes->get('login','AuthController::loginForm',['as' => 'admin.login.form']);
    $routes->post('login','AuthController::loginHandler',['as' => 'admin.login.handler']);
+   $routes->get('forgot-password','AuthController::forgotForm',['as' => 'admin.forgot.form']);
 
 
     });
