@@ -71,7 +71,7 @@
                         </div>
                         <div class="form-group">
                             <label for="">Blog meta description</label>
-                            <textarea name="blog_meta_description" id="" cols="4" rows="3" class="form-control" placeholder="Write blog meta description" value="<?= get_settings()->blog_meta_description ?>"></textarea>
+                            <textarea name="blog_meta_description" id="" cols="4" rows="3" class="form-control" placeholder="Write blog meta description"><?= get_settings()->blog_meta_description ?></textarea>
                             <span class="text-danger error-text blog_meta_description_error"></span>
                         </div>
                         <div class="form-group">
