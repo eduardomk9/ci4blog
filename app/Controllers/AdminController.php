@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Controllers\BaseController;
 use App\Libraries\CIAuth;
 use App\Models\User;
+use App\Libraries\Hash;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class AdminController extends BaseController
@@ -81,7 +82,7 @@ class AdminController extends BaseController
 
     public function updateProfilePicture()
     {
-        
+
         $request = \Config\Services::request();
         $user_id = CIAuth::id();
         $user = new User();
@@ -105,7 +106,7 @@ class AdminController extends BaseController
             echo json_encode(['status' => 0, 'msg' => 'Something went wrong.']);
         }
         */
-        
+
         //Image manipulation
         $upload_image = \Config\Services::image()
             ->withFile($file)
@@ -124,6 +125,78 @@ class AdminController extends BaseController
             echo json_encode(['status' => 1, 'msg' => 'Done!, your profile picture has been successfully updated.']);
         } else {
             echo json_encode(['status' => 0, 'msg' => 'Something went wrong']);
+        }
+    }
+
+    public function changePassword()
+    {
+        $request = \Config\Services::request();
+
+        if ($request->isAJAX()) {
+            $validation = \Config\Services::validation();
+            $user_id = CIAuth::id();
+            $user = new User();
+            $user_info = $user->asObject()->where('id', $user_id)->first();
+
+            //Validate the form
+            $this->validate([
+                'current_password' => [
+                    'rules' => 'required|min_length[5]|check_current_password[current_password]',
+                    'errors' => [
+                        'required' => 'Enter current password',
+                        'min_length' => 'Password must have atleast 5 characters',
+                        'check_current_password' => 'The current password is incorrect'
+                    ],
+                ],
+                'new_password' => [
+                    'rules' => 'required|min_length[5]|max_length[20]|is_password_strong[new_password]',
+                    'errors' => [
+                        'required' => 'New password is required',
+                        'min_length' => 'New password must have atleast 5 characters',
+                        'max_length' => 'New password must not excess more than 20 characters',
+                        'is_password_strong' => 'Password must contains atleast 1 uppercase, 1 lowercase, 1 number and 1 special character.'
+                    ],
+                ],
+                'confirm_new_password' => [
+                    'rules' => 'required|matches[new_password]',
+                    'errors' => [
+                        'required' => 'Confirm new password',
+                        'matches' => 'Password mismatch'
+                    ]
+                ],
+            ]);
+
+            if ($validation->run() === FALSE) {
+                $errors = $validation->getErrors();
+                return $this->response->setJSON(['status' => 0, 'token' => csrf_hash(), 'error' => $errors]);
+            } else {
+                //Update user(admin) password in DB
+                $user->where('id', $user_info->id)
+                    ->set(['password' => Hash::make($request->getVar('new_password'))])
+                    ->update();
+
+                //Send Email notification to user(admin) email address
+                $mail_data = array(
+                    'user' => $user_info,
+                    'new_password' => $request->getVar('new_password')
+                );
+
+                $view = \Config\Services::renderer();
+                $mail_body = $view->setVar('mail_data', $mail_data)->render('email-templates/password-changed-email-template');
+
+
+                $mailConfig = array(
+                    'mail_from_email' => env('EMAIL_FROM_ADDRESS'),
+                    'mail_from_name' => env('EMAIL_FROM_NAME'),
+                    'mail_recipient_email' => $user_info->email,
+                    'mail_recipient_name' => $user_info->name,
+                    'mail_subject' => 'Password Changed',
+                    'mail_body' => $mail_body
+                );
+
+                sendEmail($mailConfig);
+                return $this->response->setJSON(['status' => 1, 'token' => csrf_hash(), 'msg' => 'Done! Your password has been successfully updated']);
+            }
         }
     }
 }

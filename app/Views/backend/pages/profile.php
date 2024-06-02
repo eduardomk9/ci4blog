@@ -87,7 +87,36 @@
                         <!-- Tasks Tab start -->
                         <div class="tab-pane fade" id="change_password" role="tabpanel">
                             <div class="pd-20 profile-task-wrap">
-                                ----- Change Password -----
+                                <form action="<?= route_to('change-password') ?>" method="POST" id="change_password_form">
+                                    <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>" class="ci_csrf_data">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label for="">Current password</label>
+                                                <input type="password" class="form-control" placeholder="Enter current password" name="current_password">
+                                                <span class="text-danger error-text current_password_error"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label for="">New password</label>
+                                                <input type="password" class="form-control" placeholder="Enter new password" name="new_password">
+                                                <span class="text-danger error-text new_password_error"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label for="">Confirm new password</label>
+                                                <input type="password" class="form-control" placeholder="Confirm new password" name="confirm_new_password">
+                                                <span class="text-danger error-text confirm_new_password"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <button type="submit" class="btn btn-primary">Change Password</button>
+                                    </div>
+                                </form>
+
                             </div>
                         </div>
                         <!-- Tasks Tab End -->
@@ -138,22 +167,65 @@
     });
 
     $('#user_profile_file').ijaboCropTool({
-    preview: '.ci-avatar-photo',
-    setRatio: 1,
-    allowedExtensions: ['jpg', 'jpeg','png'],
-    processUrl:'<?= route_to('update-profile-picture')?>',
-    withCSRF: ['<?= csrf_token() ?>','<?= csrf_hash() ?>'],
-    onSuccess: function (message, element, status) {
-        if ( status == 1) {
-            toastr.success(message);
-        }else{
-            toastr.error(message);
+        preview: '.ci-avatar-photo',
+        setRatio: 1,
+        allowedExtensions: ['jpg', 'jpeg', 'png'],
+        processUrl: '<?= route_to('update-profile-picture') ?>',
+        withCSRF: ['<?= csrf_token() ?>', '<?= csrf_hash() ?>'],
+        onSuccess: function(message, element, status) {
+            if (status == 1) {
+                toastr.success(message);
+            } else {
+                toastr.error(message);
+            }
+        },
+        onError: function(message, element, status) {
+            alert(message);
         }
-    },
-    onError:function(message, element, status) {
-        alert(message);
-    }
-});
+    });
 
+    //Change password
+    $('#change_password_form').on('submit', function(e) {
+
+        e.preventDefault();
+
+        //CSRF Hash
+        var csrfName = $('.ci_csrf_data').attr('name'); //CSRF Token name
+        var csrfHash = $('.ci_csrf_data').val();
+        var form = this;
+        var formdata = new FormData(form);
+        formdata.append(csrfName, csrfHash);
+
+        $.ajax({
+            url: $(form).attr('action'),
+            method: $(form).attr('method'),
+            data: formdata,
+            processData: false,
+            dataType: 'json',
+            contentType: false,
+            cache: false,
+            beforeSend: function() {
+                toastr.remove();
+                $(form).find('span.error-text').text('');
+            },
+            success: function(response) {
+                //Update CSRF hash
+                $('.ci_csrf_data').val(response.token);
+
+                if ($.isEmptyObject(response.error)) {
+                    if (response.status == 1) {
+                        $(form)[0].reset();
+                        toastr.success(response.msg);
+                    } else {
+                        toastr.error(response.msg);
+                    }
+                } else {
+                    $.each(response.error, function(prefix, val) {
+                        $(form).find('span.' + prefix + '_error').text(val);
+                    });
+                }
+            }
+        });
+    });
 </script>
 <?= $this->endSection() ?>
