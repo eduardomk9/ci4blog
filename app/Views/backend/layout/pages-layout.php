@@ -24,6 +24,8 @@
 				<link rel="stylesheet" href="/extra-assets/ijabo/ijabo.in.css">
 		IJABO-->
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"/>
+	<link rel="stylesheet" href="/extra-assets/ijaboCropTool/ijaboCropTool.min.css" />
+
 	<?= $this->renderSection('stylesheets') ?>
 </head>
 
@@ -62,6 +64,7 @@
 		<script src="/extra-assets/jquery.ijaboViewer.min.css"></script>
 	IJABO-->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+	<script src="/extra-assets/ijaboCropTool/ijaboCropTool.min.js"> </script>
 	<?= $this->renderSection('scripts') ?>
 </body>
 

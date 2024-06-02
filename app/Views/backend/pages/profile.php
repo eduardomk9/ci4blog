@@ -25,8 +25,11 @@
     <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 mb-30">
         <div class="pd-20 card-box height-100-p">
             <div class="profile-photo">
-                <a href="modal" class="edit-avatar"><i class="fa fa-pencil"></i></a>
-                <img src="<?= get_user()->picture == null ? '/images/users/default-avatar.jpg' : '/images/users/' . get_user()->picture; ?>" alt="" class="avatar-photo ci-avatar-photo">
+                <a href="javascript:;" onclick="event.preventDefault(); document.getElementById('user_profile_file').click();" class="edit-avatar">
+                    <i class="fa fa-pencil"></i>
+                </a>
+                <input type="file" name="user_profile_file" id="user_profile_file" class="d-none" style="opacity: 0;">
+                <img src="<?= get_user()->picture == null ? '/images/users/default-avatar.jpg' : '/images/users/' . get_user()->picture ?>" alt="" class="avatar-photo ci-avatar-photo">
             </div>
             <h5 class="text-center h5 mb-0 ci-user-name"><?= get_user()->name ?></h5>
             <p class="text-center text-muted font-14 ci-user-email">
@@ -133,5 +136,24 @@
             }
         });
     });
+
+    $('#user_profile_file').ijaboCropTool({
+    preview: '.ci-avatar-photo',
+    setRatio: 1,
+    allowedExtensions: ['jpg', 'jpeg','png'],
+    processUrl:'<?= route_to('update-profile-picture')?>',
+    withCSRF: ['<?= csrf_token() ?>','<?= csrf_hash() ?>'],
+    onSuccess: function (message, element, status) {
+        if ( status == 1) {
+            toastr.success(message);
+        }else{
+            toastr.error(message);
+        }
+    },
+    onError:function(message, element, status) {
+        alert(message);
+    }
+});
+
 </script>
 <?= $this->endSection() ?>
